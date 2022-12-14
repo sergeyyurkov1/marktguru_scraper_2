@@ -1,0 +1,1 @@
+install.bat & run.bat

@@ -1,0 +1,11 @@
+selenium==3.141.0
+pandas==1.5.2
+openpyxl==3.0.7
+dash
+diskcache
+dash[diskcache]
+flask
+dash-bootstrap-components
+beautifulsoup4
+html5lib
+fake_useragent
