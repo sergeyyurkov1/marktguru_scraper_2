@@ -5,7 +5,6 @@ from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
 
 from fake_useragent import UserAgent
-from helpers import check_chrome_driver_exe_path
 
 
 def get_driver(chrome_binary_location, headless=False):
@@ -45,4 +44,4 @@ def Driver(chrome_binary_location, headless):
     except Exception as e:
         print(e)
     finally:
-        d.close()
+        d.quit()

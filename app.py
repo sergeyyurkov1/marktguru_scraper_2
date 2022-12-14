@@ -605,11 +605,13 @@ def App() -> None:
 
                 with Driver(path_, headless=True) as driver:
                     set_progress(("Setting location", "", "", 10))
-                    set_location(driver, sl[0], zip_)
+                    # set_location(driver, sl[0], zip_)
                     set_progress(("Location set", "", "", 25))
 
                     set_progress(("Scraping", "", "", 60))
-                    data = launch_scraper(driver, url, moe, sl, zip_, store_data)
+                    data = launch_scraper(
+                        driver, url, moe, sl, zip_, store_data, set_progress
+                    )
                 set_progress(("Done scraping", "", "", 80))
 
                 set_progress(("Processing data", "", "", 90))
@@ -652,11 +654,11 @@ def App() -> None:
             className="p-3",
         )
 
-    Timer(1, launch_app_mode).start()
+    # Timer(1, launch_app_mode).start()
 
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
-    app.run_server(debug=False)  # debug=True, use_reloader=False
+    app.run_server(debug=True)  # debug=True, use_reloader=False
 
 
 if __name__ == "__main__":

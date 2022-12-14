@@ -136,7 +136,7 @@ def search_page(
     return results
 
 
-def launch_scraper(driver, url, moe, shopping_list, zip_, store_data):
+def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progress):
     data = []
 
     for item in shopping_list:
@@ -147,6 +147,7 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data):
         page = 0
         while True:
             print("   ", f"Page {page + 1}")
+            set_progress(("Scraping", ": ", f"{item} - page {page + 1}", 60))
             try:
                 page_results = search_page(driver, url, item, page, zip_, store_data)
                 empty_results = 0
