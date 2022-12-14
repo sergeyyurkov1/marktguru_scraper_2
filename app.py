@@ -164,7 +164,7 @@ def App() -> None:
                     dbc.Tab(
                         html.Div(
                             [
-                                dbc.Label("HTML selectors (after <li> tag)"),
+                                dbc.Label("Selectors (after <li> tag)"),
                                 html.Div(
                                     [
                                         dbc.Input(
@@ -185,7 +185,7 @@ def App() -> None:
                                             id="store-input-2",
                                         ),
                                         dbc.Tooltip(
-                                            "Selector for Store with <span> tag in the title",
+                                            "(Fallback) Selector for Store with <span> tag in the title",
                                             target="store-input-2",
                                             placement="top",
                                         ),
@@ -218,7 +218,7 @@ def App() -> None:
                                             id="brand-input-2",
                                         ),
                                         dbc.Tooltip(
-                                            "Selector for Brand with <span> tag in the title",
+                                            "(Fallback) Selector for Brand with <span> tag in the title",
                                             target="brand-input-2",
                                             placement="top",
                                         ),
@@ -251,7 +251,7 @@ def App() -> None:
                                             id="price-input-2",
                                         ),
                                         dbc.Tooltip(
-                                            "Selector for Price tag in the top-right",
+                                            "(Fallback) Selector for Price tag in the top-right",
                                             target="price-input-2",
                                             placement="top",
                                         ),
@@ -262,7 +262,7 @@ def App() -> None:
                                             id="price-input-3",
                                         ),
                                         dbc.Tooltip(
-                                            "Selector for Note tag in the bottom-left",
+                                            "(Fallback) Selector for Note tag in the bottom-left (in case no units are found)",
                                             target="price-input-3",
                                             placement="top",
                                         ),
