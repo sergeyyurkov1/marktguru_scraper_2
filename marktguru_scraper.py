@@ -25,7 +25,7 @@ def set_location(driver, first_item: str, zip: str):
         driver.execute_script("arguments[0].remove();", e)
 
         # Opens location input
-        # driver.find_element(By.CLASS_NAME, "location-default-text").click()
+        driver.find_element(By.CLASS_NAME, "location-default-text").click()
 
         time.sleep(5)
 
@@ -45,7 +45,7 @@ def set_location(driver, first_item: str, zip: str):
     except Exception as e:
         import traceback
 
-        with open("log.txt", "a") as f:
+        with open("log.txt", "w") as f:
             f.write(str(e))
             f.write(traceback.format_exc())
 
@@ -96,23 +96,35 @@ def search_page(
 
             i["Name"] = "".join([x.text for x in h3]).rstrip().lower()
 
+            # Date valid
             dd = li.select(store_data["dv"])
             i["Date valid"] = "".join([x.text for x in dd]).rstrip().lower()
 
-            a = li.select(store_data["store1"])
+            # Store
+            a = li.select(store_data["store1"] + " > a")
             if len(list(a)) == 0:
-                span = li.select(store_data["store2"])
-                i["Store"] = "".join([x.text for x in span]).rstrip().lower()
+                store = li.select(store_data["store1"])
+                if len(list(store)) == 0:
+                    span = li.select(store_data["store1"] + " > span")
+                    i["Store"] = "".join([x.text for x in span]).rstrip().lower()
+                else:
+                    i["Store"] = "".join([x.text for x in store]).rstrip().lower()
             else:
                 i["Store"] = "".join([x.text for x in a]).rstrip().lower()
 
-            brand_a = li.select(store_data["brand1"])
+            # Brand
+            brand_a = li.select(store_data["brand1"] + " > a")
             if len(list(brand_a)) == 0:
-                brand_span = li.select(store_data["brand2"])
-                i["Brand"] = "".join([x.text for x in brand_span]).rstrip().lower()
+                brand = li.select(store_data["brand1"])
+                if len(list(brand)) == 0:
+                    brand_span = li.select(store_data["brand1"] + " > span")
+                    i["Brand"] = "".join([x.text for x in brand_span]).rstrip().lower()
+                else:
+                    i["Brand"] = "".join([x.text for x in brand]).rstrip().lower()
             else:
                 i["Brand"] = "".join([x.text for x in brand_a]).rstrip().lower()
 
+            # Price
             price_strong = li.select(store_data["price1"])
             if len(list(price_strong)) == 0:
                 price_dd = li.select(store_data["price2"])
@@ -198,8 +210,6 @@ def generate_output(data, lp, item_blacklist) -> str:
 
     # Removing empty rows because of possible scraping errors
     # df = df[(df["Name"] != "") & (df["Store"] != "") & (df["Price"] != "")]
-    # Removing duplicate entries because of possible scraping errors
-    df.drop_duplicates(subset=["Name", "Price", "Date valid"], keep=False, inplace=True)
 
     df = df[~df["Name"].isin(item_blacklist)]
 
@@ -231,6 +241,9 @@ def generate_output(data, lp, item_blacklist) -> str:
         lambda x: f"✅ {x[lp]}" if x["LP"] == x["Price"] else "", axis=1
     )
     df.drop(["LP"], axis=1, inplace=True)  # remove the temporary column
+
+    # Removing duplicate entries because of possible scraping errors
+    df.drop_duplicates(subset=["Name", "Brand", "Price", "Unit", "Date valid", "Note"], keep=False, inplace=True)
 
     # Handles the output
     # ------------------------------------------------------

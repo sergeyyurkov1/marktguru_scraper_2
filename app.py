@@ -60,10 +60,10 @@ def App() -> None:
         Output("moe-input", "value"),
         #
         Output("store-input-1", "value"),
-        Output("store-input-2", "value"),
+        # Output("store-input-2", "value"),
         Output("name-input", "value"),
         Output("brand-input-1", "value"),
-        Output("brand-input-2", "value"),
+        # Output("brand-input-2", "value"),
         Output("dv-input", "value"),
         Output("price-input-1", "value"),
         Output("price-input-2", "value"),
@@ -82,10 +82,10 @@ def App() -> None:
             data.get("moe"),
             #
             data.get("store1"),
-            data.get("store2"),
+            # data.get("store2"),
             data.get("name"),
             data.get("brand1"),
-            data.get("brand2"),
+            # data.get("brand2"),
             data.get("dv"),
             data.get("price1"),
             data.get("price2"),
@@ -104,10 +104,10 @@ def App() -> None:
         State("moe-input", "value"),
         #
         State("store-input-1", "value"),
-        State("store-input-2", "value"),
+        # State("store-input-2", "value"),
         State("name-input", "value"),
         State("brand-input-1", "value"),
-        State("brand-input-2", "value"),
+        # State("brand-input-2", "value"),
         State("dv-input", "value"),
         State("price-input-1", "value"),
         State("price-input-2", "value"),
@@ -125,10 +125,10 @@ def App() -> None:
         moe,
         #
         store1,
-        store2,
+        # store2,
         name,
         brand1,
-        brand2,
+        # brand2,
         dv,
         price1,
         price2,
@@ -145,10 +145,10 @@ def App() -> None:
             store_data["moe"] = int(moe)
             #
             store_data["store1"] = store1 or SETTINGS["store1"]
-            store_data["store2"] = store2 or SETTINGS["store2"]
+            # store_data["store2"] = store2 or SETTINGS["store2"]
             store_data["name"] = name or SETTINGS["name"]
             store_data["brand1"] = brand1 or SETTINGS["brand1"]
-            store_data["brand2"] = brand2 or SETTINGS["brand2"]
+            # store_data["brand2"] = brand2 or SETTINGS["brand2"]
             store_data["dv"] = dv or SETTINGS["dv"]
             store_data["price1"] = price1 or SETTINGS["price1"]
             store_data["price2"] = price2 or SETTINGS["price2"]
@@ -267,6 +267,9 @@ def App() -> None:
                 try:
                     set_location(driver, sl[0], zip_)
                 except Exception as e:
+                    if driver is not None:
+                        driver.quit()
+
                     return (
                         get_alert(
                             f"{str(e)}. Please check HTML selectors for Location. Refer to 'log.txt' to find which selector is causing the issue",
@@ -275,9 +278,6 @@ def App() -> None:
                         no_update,
                         no_update,
                     )
-                finally:
-                    if driver is not None:
-                        driver.quit()
 
                 set_progress(("Location set", "", "", 20))
 
@@ -352,11 +352,11 @@ def App() -> None:
             className="p-3",
         )
 
-    # Timer(1, launch_app).start()
+    Timer(1, launch_app).start()
 
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
-    app.run_server(debug=True)  # debug=True, use_reloader=False
+    app.run_server(debug=False)  # debug=True, use_reloader=False
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
+fisch
 butter
-#milch
+milch
 nuss
-#kartoffel
-#reis
+kartoffel
+reis

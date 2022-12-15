@@ -129,121 +129,33 @@ sidebar = html.Div(
                             className="pt-2",
                             label="Settings",
                         ),
-                        dbc.Tab(
-                            html.Div(
-                                [
-                                    dbc.Label("Selectors (after <li> tag)"),
-                                    html.Div(
-                                        [
-                                            dbc.Input(
-                                                type="text",
-                                                value=SETTINGS["store1"],
-                                                placeholder="Store 1",
-                                                id="l-input-1",
-                                            ),
-                                            dbc.Tooltip(
-                                                "Selector for Store with <a> tag in the title",
-                                                target="l-input-1",
-                                                placement="top",
-                                            ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["store2"],
-                                            #             placeholder="Store 2",
-                                            #             id="store-input-2",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "(Fallback) Selector for Store with <span> tag in the title",
-                                            #             target="store-input-2",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["name"],
-                                            #             placeholder="Name",
-                                            #             id="name-input",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "Selector for Name tag",
-                                            #             target="name-input",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["brand1"],
-                                            #             placeholder="Brand 1",
-                                            #             id="brand-input-1",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "Selector for Brand with <a> tag in the title",
-                                            #             target="brand-input-1",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["brand2"],
-                                            #             placeholder="Brand 2",
-                                            #             id="brand-input-2",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "(Fallback) Selector for Brand with <span> tag in the title",
-                                            #             target="brand-input-2",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["dv"],
-                                            #             placeholder="Date valid",
-                                            #             id="dv-input",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "Selector for Date valid tag",
-                                            #             target="dv-input",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["price1"],
-                                            #             placeholder="Price 1",
-                                            #             id="price-input-1",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "Selector for Price/Unit tag in the bottom-left",
-                                            #             target="price-input-1",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["price2"],
-                                            #             placeholder="Price 2",
-                                            #             id="price-input-2",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "(Fallback) Selector for Price tag in the top-right",
-                                            #             target="price-input-2",
-                                            #             placement="top",
-                                            #         ),
-                                            #         dbc.Input(
-                                            #             type="text",
-                                            #             value=SETTINGS["price3"],
-                                            #             placeholder="Price 3",
-                                            #             id="price-input-3",
-                                            #         ),
-                                            #         dbc.Tooltip(
-                                            #             "(Fallback) Selector for Note tag in the bottom-left (in case no units are found)",
-                                            #             target="price-input-3",
-                                            #             placement="top",
-                                            #         ),
-                                        ],
-                                        id="location-selectors",
-                                    ),
-                                ],
-                                className="mb-4",
-                                id="tab-2",
-                            ),
-                            className="pt-2",
-                            label="Location",
-                        ),
+                        # dbc.Tab(
+                        #     html.Div(
+                        #         [
+                        #             dbc.Label("Selectors"),
+                        #             html.Div(
+                        #                 [
+                        #                     dbc.Input(
+                        #                         type="text",
+                        #                         value=SETTINGS["store1"],
+                        #                         placeholder="Store 1",
+                        #                         id="l-input-1",
+                        #                     ),
+                        #                     dbc.Tooltip(
+                        #                         "Selector for Store tag",
+                        #                         target="l-input-1",
+                        #                         placement="top",
+                        #                     ),
+                        #                 ],
+                        #                 id="location-selectors",
+                        #             ),
+                        #         ],
+                        #         className="mb-4",
+                        #         id="tab-2",
+                        #     ),
+                        #     className="pt-2",
+                        #     label="Location",
+                        # ),
                         dbc.Tab(
                             html.Div(
                                 [
@@ -257,19 +169,8 @@ sidebar = html.Div(
                                                 id="store-input-1",
                                             ),
                                             dbc.Tooltip(
-                                                "Selector for Store with <a> tag in the title",
+                                                "Selector for Store tag",
                                                 target="store-input-1",
-                                                placement="top",
-                                            ),
-                                            dbc.Input(
-                                                type="text",
-                                                value=SETTINGS["store2"],
-                                                placeholder="Store 2",
-                                                id="store-input-2",
-                                            ),
-                                            dbc.Tooltip(
-                                                "(Fallback) Selector for Store with <span> tag in the title",
-                                                target="store-input-2",
                                                 placement="top",
                                             ),
                                             dbc.Input(
@@ -290,19 +191,8 @@ sidebar = html.Div(
                                                 id="brand-input-1",
                                             ),
                                             dbc.Tooltip(
-                                                "Selector for Brand with <a> tag in the title",
+                                                "Selector for Brand tag",
                                                 target="brand-input-1",
-                                                placement="top",
-                                            ),
-                                            dbc.Input(
-                                                type="text",
-                                                value=SETTINGS["brand2"],
-                                                placeholder="Brand 2",
-                                                id="brand-input-2",
-                                            ),
-                                            dbc.Tooltip(
-                                                "(Fallback) Selector for Brand with <span> tag in the title",
-                                                target="brand-input-2",
                                                 placement="top",
                                             ),
                                             dbc.Input(
