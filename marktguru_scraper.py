@@ -242,7 +242,7 @@ def generate_output(data, lp, item_blacklist) -> str:
 
     # Removing duplicate entries
     df.drop_duplicates(
-        subset=["Name", "Brand", "Price", "Unit", "Date valid", "Note"],
+        subset=["Name", "Brand", "Price", "Unit", "Date valid"],
         keep=False,
         inplace=True,
     )
