@@ -3,6 +3,7 @@ from psutil import NoSuchProcess
 from threading import Timer
 import webbrowser
 import logging
+import traceback
 
 from dash import Dash, dcc, html, Input, Output, State, no_update
 from dash.long_callback import DiskcacheLongCallbackManager
@@ -272,7 +273,7 @@ def App() -> None:
 
                     return (
                         get_alert(
-                            f"{str(e)}. Please check HTML selectors for Location. Refer to 'log.txt' to find which selector is causing the issue",
+                            f"{str(e)}. Please check HTML selectors for Location. Refer to the traceback to find which selector is causing the issue\n\n{traceback.format_exc()}",
                             "danger",
                         ),
                         no_update,
@@ -332,7 +333,7 @@ def App() -> None:
 
                 return (
                     get_alert(
-                        str(e),
+                        f"{str(e)}\n\n{traceback.format_exc()}",
                         "danger",
                     ),
                     no_update,
