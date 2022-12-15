@@ -158,14 +158,13 @@ def search_page(
 def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progress):
     data = []
     for item in shopping_list:
-        print()
-        print("  ", f"Searching for '{item}'")
-        print()
+        # print()
+        # print("  ", f"Searching for '{item}'")
+        # print()
 
         page = 0
-        retries = 0
         while True:
-            print("   ", f"Page {page + 1}")
+            # print("   ", f"Page {page + 1}")
             set_progress(("Scraping", ": ", f"'{item}' - page {page + 1}", 60))
 
             try:
@@ -180,20 +179,19 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progre
                     ):
                         empty_results += 1
                 if empty_results > moe:
-                    retries = retries + 1
                     raise ValueError(
                         f"Getting empty results. Please check HTML selectors for changes and save the settings"
                     )
 
                 data.extend(page_results)
             except ValueError as e:
-                if retries > 2:
-                    raise
-                print("    ", e)
-                page -= 1
+                raise
+                # print("    ", e)
+
+                # page -= 1
             except AssertionError:
-                print()
-                print("    ", "Reached the last page")
+                # print()
+                # print("    ", "Reached the last page")
                 break
             except Exception:
                 raise
@@ -242,8 +240,12 @@ def generate_output(data, lp, item_blacklist) -> str:
     )
     df.drop(["LP"], axis=1, inplace=True)  # remove the temporary column
 
-    # Removing duplicate entries because of possible scraping errors
-    df.drop_duplicates(subset=["Name", "Brand", "Price", "Unit", "Date valid", "Note"], keep=False, inplace=True)
+    # Removing duplicate entries
+    df.drop_duplicates(
+        subset=["Name", "Brand", "Price", "Unit", "Date valid", "Note"],
+        keep=False,
+        inplace=True,
+    )
 
     # Handles the output
     # ------------------------------------------------------

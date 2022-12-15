@@ -358,6 +358,8 @@ def App() -> None:
 
     app.run_server(debug=False)  # debug=True, use_reloader=False
 
+    print()
+
 
 if __name__ == "__main__":
     try:
