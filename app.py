@@ -188,6 +188,16 @@ def App() -> None:
                 return get_alert("Chrome executable found", "success")
             return get_alert("Chrome executable not found", "danger")
 
+    @app.callback(
+        Output("collapse", "is_open"),
+        [Input("collapse-button", "n_clicks")],
+        [State("collapse", "is_open")],
+    )
+    def toggle_collapse(n_clicks, is_open):
+        if n_clicks:
+            return not is_open
+        return is_open
+
     # ---------------------------------------------------------------------------------
     @app.long_callback(
         prevent_initial_call=True,
@@ -265,20 +275,20 @@ def App() -> None:
                 driver = get_driver(path_, headless=True)
 
                 set_progress(("Setting location", "", "", 10))
-                try:
-                    set_location(driver, sl[0], zip_)
-                except Exception as e:
-                    if driver is not None:
-                        driver.quit()
+                # try:
+                #     set_location(driver, sl[0], zip_)
+                # except Exception as e:
+                #     if driver is not None:
+                #         driver.quit()
 
-                    return (
-                        get_alert(
-                            f"{str(e)}. Please check HTML selectors for Location. Refer to the traceback to find which selector is causing the issue\n\n{traceback.format_exc()}",
-                            "danger",
-                        ),
-                        no_update,
-                        no_update,
-                    )
+                #     return (
+                #         get_alert(
+                #             f"{str(e)}. Please check HTML selectors for Location. Refer to the traceback to find which selector is causing the issue\n\n{traceback.format_exc()}",
+                #             "danger",
+                #         ),
+                #         no_update,
+                #         no_update,
+                #     )
 
                 set_progress(("Location set", "", "", 20))
 
@@ -327,14 +337,15 @@ def App() -> None:
                     no_update,
                     no_update,
                 )
-
             except Exception as e:
                 set_progress(("...", "", "", 100))
-
+                traceback_c = traceback.format_exc()
                 return (
                     get_alert(
-                        f"{str(e)}\n\n{traceback.format_exc()}",
+                        f"{str(e)}",
                         "danger",
+                        traceback_c,
+                        traceback=True,
                     ),
                     no_update,
                     no_update,
@@ -353,11 +364,11 @@ def App() -> None:
             className="p-3",
         )
 
-    Timer(1, launch_app).start()
+    # Timer(1, launch_app).start()
 
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
-    app.run_server(debug=False)  # debug=True, use_reloader=False
+    app.run_server(debug=True)  # debug=True, use_reloader=False
 
     print()
 

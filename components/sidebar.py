@@ -56,10 +56,10 @@ sidebar = html.Div(
                                     color="primary",
                                     outline=True,
                                     n_clicks=0,
-                                    className="me-1",
                                     id="check-button",
                                 ),
-                            ]
+                            ],
+                            style={"background-color": "white"},
                         ),
                     ]
                 ),

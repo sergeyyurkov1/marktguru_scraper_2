@@ -27,7 +27,7 @@
   overflow-y: scroll;
   height: 25vh;
   max-height: 25vh;
-  padding-right: 1em;
+  padding-right: 0.5em;
 }
 
 #html-selectors {

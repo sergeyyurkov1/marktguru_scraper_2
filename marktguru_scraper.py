@@ -12,7 +12,7 @@ from openpyxl import load_workbook
 from datetime import date
 
 
-def set_location(driver, first_item: str, zip: str):
+def set_location(driver, first_item: str, zip_: str):
     try:
         driver.get(
             f"https://www.marktguru.de/search/{first_item}?title={first_item}&page=0"
@@ -31,7 +31,7 @@ def set_location(driver, first_item: str, zip: str):
 
         # Selects the location input and enters the ZIP code
         inputs = driver.find_elements(By.TAG_NAME, "input")
-        inputs[1].send_keys(zip + Keys.ENTER)
+        inputs[1].send_keys(zip_ + Keys.ENTER)
 
         time.sleep(5)
 
@@ -42,13 +42,7 @@ def set_location(driver, first_item: str, zip: str):
 
         time.sleep(5)
 
-    except Exception as e:
-        import traceback
-
-        with open("log.txt", "w") as f:
-            f.write(str(e))
-            f.write(traceback.format_exc())
-
+    except:
         raise
 
 
@@ -76,7 +70,7 @@ def search_page(
         print()
 
     # Parses the page
-
+    # ---------------------------
     # For debugging
     # with open("debug.html", "w") as f:
     #     f.write(driver.page_source)
@@ -149,7 +143,8 @@ def search_page(
 
     if len(lis) == not_found:
         raise ValueError(
-            f"Getting empty results. Please check HTML selectors for changes and save the settings"
+            f"Getting empty results. Please check the 'Name' selector for changes, save the settings, and retry"
+            # Getting empty results. Please check 'Store', 'Brand', 'Price', and 'Date valid' selectors for changes, save the settings, and retry
         )
 
     return results
@@ -233,14 +228,14 @@ def generate_output(data, lp, item_blacklist) -> str:
     except KeyError:
         df = df[["Store", "Item", "Name", "Brand", "Price", "Unit", "Date valid"]]
 
-    # Lastly: Lowest price indicator
+    # Lowest price indicator
     df["LP"] = df.groupby([lp])["Price"].transform("min")
     df["Lowest price across stores"] = df.apply(
         lambda x: f"✅ {x[lp]}" if x["LP"] == x["Price"] else "", axis=1
     )
     df.drop(["LP"], axis=1, inplace=True)  # remove the temporary column
 
-    # Removing duplicate entries
+    # Lastly: Removing duplicate entries
     df.drop_duplicates(
         subset=["Name", "Brand", "Price", "Unit", "Date valid"],
         keep=False,

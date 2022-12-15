@@ -1,4 +1,5 @@
 from os import path
+from dash import html
 import dash_bootstrap_components as dbc
 
 
@@ -37,13 +38,38 @@ def read_list(input: str) -> list:
     ]  # strips spaces and new lines
 
 
-def get_alert(c, color):
-    return (
-        dbc.Alert(
+def get_alert(c, color, traceback_c="", traceback=False):
+    if traceback:
+        alert = dbc.Alert(
+            [
+                c,
+                html.Hr(),
+                dbc.Button(
+                    "See traceback",
+                    id="collapse-button",
+                    className="mb-3",
+                    outline=True,
+                    color="primary",
+                    n_clicks=0,
+                ),
+                dbc.Collapse(
+                    dbc.Card(dbc.CardBody(traceback_c)),
+                    id="collapse",
+                    is_open=False,
+                ),
+            ],
+            color=color,
+            # id="alert",
+            is_open=True,
+            dismissable=True,
+        )
+    else:
+        alert = dbc.Alert(
             c,
             color=color,
-            id="alert",
+            # id="alert",
             is_open=True,
             duration=10000,
-        ),
-    )
+        )
+
+    return alert
