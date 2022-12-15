@@ -25,7 +25,7 @@ def set_location(driver, first_item: str, zip: str):
         driver.execute_script("arguments[0].remove();", e)
 
         # Opens location input
-        driver.find_element(By.CLASS_NAME, "location-default-text").click()
+        # driver.find_element(By.CLASS_NAME, "location-default-text").click()
 
         time.sleep(5)
 
@@ -42,15 +42,14 @@ def set_location(driver, first_item: str, zip: str):
 
         time.sleep(5)
 
-        return True
-    except Exception:
-        print()
-        print(e)
-        print()
-        print("The page didn't load right. Please restart.")
-        print()
+    except Exception as e:
+        import traceback
 
-        return False
+        with open("log.txt", "a") as f:
+            f.write(str(e))
+            f.write(traceback.format_exc())
+
+        raise
 
 
 def search_page(
@@ -129,7 +128,7 @@ def search_page(
                     .lower()
                 )
 
-            print(i)
+            # print(i)
 
             results.append(i)
         else:
@@ -152,9 +151,10 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progre
         print()
 
         page = 0
+        retries = 0
         while True:
             print("   ", f"Page {page + 1}")
-            set_progress(("Scraping", ": ", f"{item} - page {page + 1}", 60))
+            set_progress(("Scraping", ": ", f"'{item}' - page {page + 1}", 60))
 
             try:
                 page_results = search_page(driver, url, item, page, zip_, store_data)
@@ -168,18 +168,17 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progre
                     ):
                         empty_results += 1
                 if empty_results > moe:
-                    # raise ValueError(
-                    #     f"Got more than {moe} empty result(s). Please check HTML selectors for changes"
-                    # )
+                    retries = retries + 1
                     raise ValueError(
                         f"Getting empty results. Please check HTML selectors for changes and save the settings"
                     )
 
                 data.extend(page_results)
             except ValueError as e:
+                if retries > 2:
+                    raise
                 print("    ", e)
-                # page -= 1
-                raise
+                page -= 1
             except AssertionError:
                 print()
                 print("    ", "Reached the last page")

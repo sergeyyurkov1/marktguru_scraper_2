@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, time
 from psutil import NoSuchProcess
 from threading import Timer
 import webbrowser
@@ -239,17 +239,14 @@ def App() -> None:
         item_blacklist,
         store_data,
     ):
-        try:
-            if n_clicks:
+        if n_clicks:
+            try:
                 if not check_chrome_exe_path(path_):
                     raise FileNotFoundError(
                         "Chrome executable not found. Please check the settings and save any changes"
                     )
                 if not check_chrome_driver_exe_path():
                     raise FileNotFoundError("chromedriver.exe not found")
-
-                # with Driver(path_, headless=True) as driver:
-                driver = get_driver(path_, headless=True)
 
                 write_txt_file("shopping_list", shopping_list)
                 write_txt_file("item_blacklist", item_blacklist)
@@ -264,20 +261,41 @@ def App() -> None:
                         no_update,
                     )
 
+                driver = get_driver(path_, headless=True)
+
                 set_progress(("Setting location", "", "", 10))
-                # set_location(driver, sl[0], zip_)
+                try:
+                    set_location(driver, sl[0], zip_)
+                except Exception as e:
+                    return (
+                        get_alert(
+                            f"{str(e)}. Please check HTML selectors for Location. Refer to 'log.txt' to find which selector is causing the issue",
+                            "danger",
+                        ),
+                        no_update,
+                        no_update,
+                    )
+                finally:
+                    if driver is not None:
+                        driver.quit()
+
                 set_progress(("Location set", "", "", 20))
+
+                time.sleep(1)
 
                 set_progress(("Scraping", "", "", 40))
                 data = launch_scraper(
                     driver, url, moe, sl, zip_, store_data, set_progress
                 )
-
                 set_progress(("Done scraping", "", "", 80))
+
+                time.sleep(1)
 
                 set_progress(("Processing data", "", "", 90))
                 file = generate_output(data, lp, ib)
-                set_progress(("Done", "", "", 95))
+                set_progress(("Writing Excel file", "", "", 95))
+
+                time.sleep(1)
 
                 set_progress(("...", "", "", 100))
 
@@ -286,45 +304,43 @@ def App() -> None:
                     {"visibility": "visible"},
                     file,
                 )
-        except FileNotFoundError as e:
-            set_progress(("...", "", "", 100))
+            except FileNotFoundError as e:
+                set_progress(("...", "", "", 100))
 
-            return (
-                get_alert(
-                    str(e),
-                    "danger",
-                ),
-                no_update,
-                no_update,
-            )
-        except SessionNotCreatedException as e:
-            set_progress(("...", "", "", 100))
+                return (
+                    get_alert(
+                        str(e),
+                        "danger",
+                    ),
+                    no_update,
+                    no_update,
+                )
+            except SessionNotCreatedException as e:
+                set_progress(("...", "", "", 100))
 
-            return (
-                get_alert(
-                    f"{str(e)}. Please download the right driver version from https://chromedriver.chromium.org/downloads",
-                    "danger",
-                ),
-                no_update,
-                no_update,
-            )
+                return (
+                    get_alert(
+                        f"{str(e)}. Please download the right driver version from https://chromedriver.chromium.org/downloads",
+                        "danger",
+                    ),
+                    no_update,
+                    no_update,
+                )
 
-        except Exception as e:
-            set_progress(("...", "", "", 100))
+            except Exception as e:
+                set_progress(("...", "", "", 100))
 
-            return (
-                get_alert(
-                    str(e),
-                    "danger",
-                ),
-                no_update,
-                no_update,
-            )
-        finally:
-            try:
-                driver.quit()
-            except:
-                pass
+                return (
+                    get_alert(
+                        str(e),
+                        "danger",
+                    ),
+                    no_update,
+                    no_update,
+                )
+            finally:
+                if driver is not None:
+                    driver.quit()
 
     @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
     def render_page_content(pathname):

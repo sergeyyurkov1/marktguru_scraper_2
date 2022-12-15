@@ -23,9 +23,9 @@
   margin-bottom: 2rem;
 }
 
-#fixed {
+#tab-1, #tab-2, #tab-3 {
   overflow-y: scroll;
-  max-height: 60vh;
+  max-height: 30vh;
   padding-right: 1em;
 }
 

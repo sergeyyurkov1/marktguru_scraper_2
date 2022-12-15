@@ -35,5 +35,5 @@ def get_driver(chrome_binary_location, headless=False):
         )
 
         return driver
-    except Exception:
+    except:
         raise
