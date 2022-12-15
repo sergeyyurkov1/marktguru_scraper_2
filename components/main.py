@@ -1,0 +1,98 @@
+from dash import dcc, html
+import dash_bootstrap_components as dbc
+
+
+main = html.Div(
+    [
+        html.Div(
+            [
+                dbc.Row(
+                    id="top-row-0",
+                ),
+                dbc.Row(
+                    id="top-row-1",
+                ),
+                dbc.Row(id="top-row-2"),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Div(
+                                [
+                                    dbc.Label("Shopping list", class_name="h5"),
+                                    dbc.Textarea(
+                                        style={"height": "16rem"},
+                                        draggable=False,
+                                        placeholder="Comment out the items you don't want to buy today - prepend the '#' symbol to the name",
+                                        id="shopping-list",
+                                    ),
+                                ]
+                            )
+                        ),
+                        dbc.Col(
+                            html.Div(
+                                [
+                                    dbc.Label("Blacklist", class_name="h5"),
+                                    dbc.Textarea(
+                                        style={"height": "16rem"},
+                                        draggable=False,
+                                        placeholder="Put items you don't want to see in search results here. Temporarily unlist an item by prepending '#' to the name",
+                                        id="item-blacklist",
+                                    ),
+                                ]
+                            )
+                        ),
+                    ],
+                    class_name="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Button(
+                            "Scrape",
+                            color="primary",
+                            n_clicks=0,
+                            className="me-1",
+                            id="scrape-button",
+                        ),
+                        dbc.Button(
+                            "Stop",
+                            color="primary",
+                            outline=True,
+                            n_clicks=0,
+                            className="me-1",
+                            id="stop-button",
+                            style={"visibility": "hidden"},
+                        ),
+                        dcc.Input(id="hidden-in", style={"visibility": "hidden"}),
+                        html.Div(id="hidden-out", style={"visibility": "hidden"}),
+                        dbc.Button(
+                            "Open results",
+                            color="success",
+                            n_clicks=0,
+                            className="me-1",
+                            id="results-button",
+                            style={"visibility": "hidden"},
+                        ),
+                    ],
+                    className="d-grid gap-2 col-5 mx-auto",
+                ),
+            ]
+        ),
+        html.Div(
+            [
+                html.Hr(),
+                dbc.Label("...", id="label-1"),
+                html.Span("", id="span"),
+                dbc.Label("", id="label-2"),
+                dbc.Progress(
+                    value=100,
+                    id="progress",
+                    animated=True,
+                    striped=True,
+                ),
+            ],
+            id="progress-container",
+            style={"visibility": "hidden"},
+        ),
+    ],
+    id="container",
+)

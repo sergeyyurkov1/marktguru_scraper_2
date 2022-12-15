@@ -23,6 +23,12 @@
   margin-bottom: 2rem;
 }
 
+#fixed {
+  overflow-y: scroll;
+  max-height: 60vh;
+  padding-right: 1em;
+}
+
 #html-selectors {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

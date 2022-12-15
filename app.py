@@ -9,6 +9,8 @@ from dash.long_callback import DiskcacheLongCallbackManager
 import diskcache
 import dash_bootstrap_components as dbc
 
+from selenium.common.exceptions import SessionNotCreatedException
+
 from helpers import (
     check_chrome_exe_path,
     load_txt_file,
@@ -18,25 +20,15 @@ from helpers import (
     check_chrome_driver_exe_path,
 )
 from settings import SETTINGS
+from components.sidebar import sidebar
+from components.main import main
 
-from selenium_init import Driver
+from selenium_init import get_driver
 from marktguru_scraper import set_location, launch_scraper, generate_output
 
 
 # ---------------------------
-try:
-    shutil.rmtree("cache")
-    shutil.rmtree("Chrome")
-except (PermissionError, FileNotFoundError):
-    pass
-
-
-cache = diskcache.Cache("./cache")
-long_callback_manager = DiskcacheLongCallbackManager(cache)
-
-
-# ---------------------------
-def launch_app_mode() -> None:
+def launch_app() -> None:
     webbrowser.open_new("http://127.0.0.1:8050")
 
 
@@ -50,349 +42,15 @@ def App() -> None:
         long_callback_manager=long_callback_manager,
     )
 
-    SIDEBAR_STYLE = {
-        "position": "fixed",
-        "top": 0,
-        "left": 0,
-        "bottom": 0,
-        "width": "20rem",
-        "padding": "2rem 1rem",
-        "background-color": "#f8f9fa",
-        "overflow-y": "scroll",
-        "max-height": "100vh",
-    }
-
     CONTENT_STYLE = {
         "margin-left": "22rem",
         "margin-right": "2rem",
         "padding": "2rem 1rem",
     }
 
-    sidebar = html.Div(
-        [
-            dcc.Store(id="store", storage_type="local"),
-            html.H2("MarktGuru Scraper", className="display-6"),
-            html.Hr(),
-            html.Div(
-                [
-                    dbc.Label("Search URL"),
-                    dbc.Input(
-                        value="https://www.marktguru.de/search",
-                        size="md",
-                        className="mb-3",
-                        id="url-input",
-                        readonly=True,
-                    ),
-                ]
-            ),
-            html.Div(
-                [
-                    dbc.Label("Path to Chrome executable"),
-                    dbc.InputGroup(
-                        [
-                            dbc.Input(
-                                value=SETTINGS["path"],
-                                size="md",
-                                id="path-input",
-                            ),
-                            dbc.Button(
-                                "Check",
-                                color="primary",
-                                n_clicks=0,
-                                className="me-1",
-                                id="check-button",
-                            ),
-                        ]
-                    ),
-                ]
-            ),
-            html.Hr(),
-            dbc.Tabs(
-                [
-                    dbc.Tab(
-                        [
-                            html.Div(
-                                [
-                                    dbc.Label("ZIP code"),
-                                    dbc.Input(
-                                        value=SETTINGS["zip"],
-                                        size="md",
-                                        className="mb-3",
-                                        id="zip-input",
-                                    ),
-                                ]
-                            ),
-                            html.Div(
-                                [
-                                    dbc.Label("Display lowest price by"),
-                                    dbc.RadioItems(
-                                        options=[
-                                            {"label": "Search item", "value": "Item"},
-                                            {"label": "Product name", "value": "Name"},
-                                        ],
-                                        value=SETTINGS["lp"],
-                                        id="lp-input",
-                                        className="mb-3",
-                                        inline=True,
-                                    ),
-                                ]
-                            ),
-                            html.Div(
-                                [
-                                    dbc.Label("Margin of error"),
-                                    dbc.Input(
-                                        type="number",
-                                        value=SETTINGS["moe"],
-                                        min=0,
-                                        max=10,
-                                        step=1,
-                                        id="moe-input",
-                                    ),
-                                    dbc.Tooltip(
-                                        "The maximum number of empty results to skip in case of errors on a product page",
-                                        target="moe-input",
-                                        placement="right",
-                                    ),
-                                ],
-                                id="styled-numeric-input",
-                                className="mb-4",
-                            ),
-                        ],
-                        className="pt-2",
-                        label="Settings",
-                    ),
-                    dbc.Tab(
-                        html.Div(
-                            [
-                                dbc.Label("Selectors (after <li> tag)"),
-                                html.Div(
-                                    [
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["store1"],
-                                            placeholder="Store 1",
-                                            id="store-input-1",
-                                        ),
-                                        dbc.Tooltip(
-                                            "Selector for Store with <a> tag in the title",
-                                            target="store-input-1",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["store2"],
-                                            placeholder="Store 2",
-                                            id="store-input-2",
-                                        ),
-                                        dbc.Tooltip(
-                                            "(Fallback) Selector for Store with <span> tag in the title",
-                                            target="store-input-2",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["name"],
-                                            placeholder="Name",
-                                            id="name-input",
-                                        ),
-                                        dbc.Tooltip(
-                                            "Selector for Name tag",
-                                            target="name-input",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["brand1"],
-                                            placeholder="Brand 1",
-                                            id="brand-input-1",
-                                        ),
-                                        dbc.Tooltip(
-                                            "Selector for Brand with <a> tag in the title",
-                                            target="brand-input-1",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["brand2"],
-                                            placeholder="Brand 2",
-                                            id="brand-input-2",
-                                        ),
-                                        dbc.Tooltip(
-                                            "(Fallback) Selector for Brand with <span> tag in the title",
-                                            target="brand-input-2",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["dv"],
-                                            placeholder="Date valid",
-                                            id="dv-input",
-                                        ),
-                                        dbc.Tooltip(
-                                            "Selector for Date valid tag",
-                                            target="dv-input",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["price1"],
-                                            placeholder="Price 1",
-                                            id="price-input-1",
-                                        ),
-                                        dbc.Tooltip(
-                                            "Selector for Price/Unit tag in the bottom-left",
-                                            target="price-input-1",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["price2"],
-                                            placeholder="Price 2",
-                                            id="price-input-2",
-                                        ),
-                                        dbc.Tooltip(
-                                            "(Fallback) Selector for Price tag in the top-right",
-                                            target="price-input-2",
-                                            placement="top",
-                                        ),
-                                        dbc.Input(
-                                            type="text",
-                                            value=SETTINGS["price3"],
-                                            placeholder="Price 3",
-                                            id="price-input-3",
-                                        ),
-                                        dbc.Tooltip(
-                                            "(Fallback) Selector for Note tag in the bottom-left (in case no units are found)",
-                                            target="price-input-3",
-                                            placement="top",
-                                        ),
-                                    ],
-                                    id="html-selectors",
-                                ),
-                            ],
-                            className="mb-4",
-                        ),
-                        className="pt-2",
-                        label="HTML",
-                    ),
-                ]
-            ),
-            html.Div(
-                [
-                    dbc.Button(
-                        "Save",
-                        color="primary",
-                        n_clicks=0,
-                        className="me-1",
-                        outline=True,
-                        id="save-button",
-                        disabled=False,
-                    ),
-                ],
-                className="d-grid gap-2 col-6 mx-auto",
-            ),
-        ],
-        style=SIDEBAR_STYLE,
-    )
-
     content = html.Div(id="page-content", style=CONTENT_STYLE)
 
     app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
-
-    main = html.Div(
-        [
-            html.Div(
-                [
-                    dbc.Row(
-                        id="top-row-0",
-                    ),
-                    dbc.Row(
-                        id="top-row-1",
-                    ),
-                    dbc.Row(id="top-row-2"),
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                html.Div(
-                                    [
-                                        dbc.Label("Shopping list"),
-                                        dbc.Textarea(
-                                            style={"height": "16rem"},
-                                            draggable=False,
-                                            placeholder="Comment out the items you don't want to buy today - prepend the '#' symbol to the name",
-                                            id="shopping-list",
-                                        ),
-                                    ]
-                                )
-                            ),
-                            dbc.Col(
-                                html.Div(
-                                    [
-                                        dbc.Label("Blacklist"),
-                                        dbc.Textarea(
-                                            style={"height": "16rem"},
-                                            draggable=False,
-                                            placeholder="Put items you don't want to see in search results here. Temporarily unlist an item by prepending '#' to the name",
-                                            id="item-blacklist",
-                                        ),
-                                    ]
-                                )
-                            ),
-                        ],
-                        class_name="mb-4",
-                    ),
-                    html.Div(
-                        [
-                            dbc.Button(
-                                "Scrape",
-                                color="primary",
-                                n_clicks=0,
-                                className="me-1",
-                                id="scrape-button",
-                            ),
-                            dbc.Button(
-                                "Stop",
-                                color="primary",
-                                outline=True,
-                                n_clicks=0,
-                                className="me-1",
-                                id="stop-button",
-                                style={"visibility": "hidden"},
-                            ),
-                            dcc.Input(id="hidden-in", style={"visibility": "hidden"}),
-                            html.Div(id="hidden-out", style={"visibility": "hidden"}),
-                            dbc.Button(
-                                "Open results",
-                                color="success",
-                                n_clicks=0,
-                                className="me-1",
-                                id="results-button",
-                                style={"visibility": "hidden"},
-                            ),
-                        ],
-                        className="d-grid gap-2 col-5 mx-auto",
-                    ),
-                ]
-            ),
-            html.Div(
-                [
-                    html.Hr(),
-                    dbc.Label("Starting", id="label-1"),
-                    html.Span(id="span"),
-                    dbc.Label(id="label-2"),
-                    dbc.Progress(
-                        value=100,
-                        id="progress",
-                        animated=True,
-                        striped=True,
-                    ),
-                ],
-                id="progress-container",
-                style={"visibility": "hidden"},
-            ),
-        ],
-        id="container",
-    )
 
     # ---------------------------------------------------------------------------------
     @app.callback(
@@ -590,6 +248,9 @@ def App() -> None:
                 if not check_chrome_driver_exe_path():
                     raise FileNotFoundError("chromedriver.exe not found")
 
+                # with Driver(path_, headless=True) as driver:
+                driver = get_driver(path_, headless=True)
+
                 write_txt_file("shopping_list", shopping_list)
                 write_txt_file("item_blacklist", item_blacklist)
 
@@ -603,26 +264,30 @@ def App() -> None:
                         no_update,
                     )
 
-                with Driver(path_, headless=True) as driver:
-                    set_progress(("Setting location", "", "", 10))
-                    # set_location(driver, sl[0], zip_)
-                    set_progress(("Location set", "", "", 25))
+                set_progress(("Setting location", "", "", 10))
+                # set_location(driver, sl[0], zip_)
+                set_progress(("Location set", "", "", 20))
 
-                    set_progress(("Scraping", "", "", 60))
-                    data = launch_scraper(
-                        driver, url, moe, sl, zip_, store_data, set_progress
-                    )
+                set_progress(("Scraping", "", "", 40))
+                data = launch_scraper(
+                    driver, url, moe, sl, zip_, store_data, set_progress
+                )
+
                 set_progress(("Done scraping", "", "", 80))
 
                 set_progress(("Processing data", "", "", 90))
                 file = generate_output(data, lp, ib)
                 set_progress(("Done", "", "", 95))
 
-                set_progress(("", "", "", 100))
+                set_progress(("...", "", "", 100))
 
-                return get_alert("Done", "success"), {"visibility": "visible"}, file
+                return (
+                    get_alert("Scraping successful", "success"),
+                    {"visibility": "visible"},
+                    file,
+                )
         except FileNotFoundError as e:
-            set_progress(("", "", "", 100))
+            set_progress(("...", "", "", 100))
 
             return (
                 get_alert(
@@ -632,17 +297,34 @@ def App() -> None:
                 no_update,
                 no_update,
             )
-        except Exception:
-            set_progress(("", "", "", 100))
+        except SessionNotCreatedException as e:
+            set_progress(("...", "", "", 100))
 
             return (
                 get_alert(
-                    "Scraping unsuccessful. Please check the settings, HTML tags and save any changes",
+                    f"{str(e)}. Please download the right driver version from https://chromedriver.chromium.org/downloads",
                     "danger",
                 ),
                 no_update,
                 no_update,
             )
+
+        except Exception as e:
+            set_progress(("...", "", "", 100))
+
+            return (
+                get_alert(
+                    str(e),
+                    "danger",
+                ),
+                no_update,
+                no_update,
+            )
+        finally:
+            try:
+                driver.quit()
+            except:
+                pass
 
     @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
     def render_page_content(pathname):
@@ -654,7 +336,7 @@ def App() -> None:
             className="p-3",
         )
 
-    # Timer(1, launch_app_mode).start()
+    # Timer(1, launch_app).start()
 
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
@@ -662,4 +344,13 @@ def App() -> None:
 
 
 if __name__ == "__main__":
+    try:
+        shutil.rmtree("cache")
+        shutil.rmtree("Chrome")
+    except (PermissionError, FileNotFoundError):
+        pass
+
+    cache = diskcache.Cache("./cache")
+    long_callback_manager = DiskcacheLongCallbackManager(cache)
+
     App()

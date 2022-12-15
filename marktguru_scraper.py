@@ -73,18 +73,20 @@ def search_page(
 
     if zip_ not in driver.find_element(By.CLASS_NAME, "location-text").text:
         print()
-        print("Location error!")
+        print("Warning: Location not set")
         print()
 
     # Parses the page
 
     # For debugging
-    # with open("out.html", "w") as f:
+    # with open("debug.html", "w") as f:
     #     f.write(driver.page_source)
 
     bs = BeautifulSoup(driver.page_source, "html.parser")
 
-    for li in bs.select("li"):
+    lis = bs.select("li")
+    not_found = 0
+    for li in lis:
 
         h3 = li.select(store_data["name"])
 
@@ -131,14 +133,19 @@ def search_page(
 
             results.append(i)
         else:
+            not_found += 1
             continue
+
+    if len(lis) == not_found:
+        raise ValueError(
+            f"Getting empty results. Please check HTML selectors for changes and save the settings"
+        )
 
     return results
 
 
 def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progress):
     data = []
-
     for item in shopping_list:
         print()
         print("  ", f"Searching for '{item}'")
@@ -148,8 +155,10 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progre
         while True:
             print("   ", f"Page {page + 1}")
             set_progress(("Scraping", ": ", f"{item} - page {page + 1}", 60))
+
             try:
                 page_results = search_page(driver, url, item, page, zip_, store_data)
+
                 empty_results = 0
                 for result in page_results:
                     if (
@@ -159,20 +168,24 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progre
                     ):
                         empty_results += 1
                 if empty_results > moe:
+                    # raise ValueError(
+                    #     f"Got more than {moe} empty result(s). Please check HTML selectors for changes"
+                    # )
                     raise ValueError(
-                        f"Got more than {moe} empty result(s). Retrying..."
-                    )  # see the config file
+                        f"Getting empty results. Please check HTML selectors for changes and save the settings"
+                    )
 
                 data.extend(page_results)
             except ValueError as e:
                 print("    ", e)
-                page -= 1
+                # page -= 1
+                raise
             except AssertionError:
                 print()
-                print("    ", "Reached the last page.")
+                print("    ", "Reached the last page")
                 break
-            except Exception as e:
-                print(e)
+            except Exception:
+                raise
 
             page += 1
 
@@ -185,7 +198,7 @@ def generate_output(data, lp, item_blacklist) -> str:
     df = pd.DataFrame(data)
 
     # Removing empty rows because of possible scraping errors
-    df = df[(df["Name"] != "") & (df["Store"] != "") & (df["Price"] != "")]
+    # df = df[(df["Name"] != "") & (df["Store"] != "") & (df["Price"] != "")]
     # Removing duplicate entries because of possible scraping errors
     df.drop_duplicates(subset=["Name", "Price", "Date valid"], keep=False, inplace=True)
 
