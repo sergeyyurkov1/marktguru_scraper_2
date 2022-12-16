@@ -1,15 +1,19 @@
 import time
 import warnings
+from typing import Callable
 
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from dash import no_update
+
 from bs4 import BeautifulSoup
 import pandas as pd
 from openpyxl import load_workbook
 from datetime import date
+from helpers import get_alert
 
 
 def set_location(driver, first_item: str, zip_: str):
@@ -54,6 +58,7 @@ def search_page(
     driver.get(f"{url}/{item}?title={item}&page={page}")
 
     # Exit condition: last page found, continues with the next item
+    # ---------------------------
     WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located((By.CLASS_NAME, "headline"))
     )
@@ -64,37 +69,35 @@ def search_page(
         EC.visibility_of_all_elements_located((By.TAG_NAME, "li"))
     )
 
+    # ---------------------------
     if zip_ not in driver.find_element(By.CLASS_NAME, "location-text").text:
-        print()
         print("Warning: Location not set")
-        print()
 
     # Parses the page
     # ---------------------------
-    # For debugging
-    # with open("debug.html", "w") as f:
-    #     f.write(driver.page_source)
-
     bs = BeautifulSoup(driver.page_source, "html.parser")
 
     lis = bs.select("li")
     not_found = 0
     for li in lis:
-
-        h3 = li.select(store_data["name"])
-
+        name = li.select(store_data["name"])
         i = {}
-
-        if len(h3) > 0:
+        if len(name) > 0:
+            # Item
+            # ---------------------------
             i["Item"] = item
 
-            i["Name"] = "".join([x.text for x in h3]).rstrip().lower()
+            # Name
+            # ---------------------------
+            i["Name"] = "".join([x.text for x in name]).rstrip().lower()
 
             # Date valid
+            # ---------------------------
             dd = li.select(store_data["dv"])
             i["Date valid"] = "".join([x.text for x in dd]).rstrip().lower()
 
             # Store
+            # ---------------------------
             a = li.select(store_data["store1"] + " > a")
             if len(list(a)) == 0:
                 store = li.select(store_data["store1"])
@@ -107,6 +110,7 @@ def search_page(
                 i["Store"] = "".join([x.text for x in a]).rstrip().lower()
 
             # Brand
+            # ---------------------------
             brand_a = li.select(store_data["brand1"] + " > a")
             if len(list(brand_a)) == 0:
                 brand = li.select(store_data["brand1"])
@@ -119,6 +123,7 @@ def search_page(
                 i["Brand"] = "".join([x.text for x in brand_a]).rstrip().lower()
 
             # Price
+            # ---------------------------
             price_strong = li.select(store_data["price1"])
             if len(list(price_strong)) == 0:
                 price_dd = li.select(store_data["price2"])
@@ -134,17 +139,22 @@ def search_page(
                     .lower()
                 )
 
-            # print(i)
+            # print(i)  # for debugging
 
             results.append(i)
         else:
             not_found += 1
             continue
 
+    # For debugging
+    # with open("debug.html", "w") as f:
+    #     f.write(driver.page_source)
+    # with open("results.txt", "w") as f:
+    #     f.write(repr(results))
+
     if len(lis) == not_found:
-        raise ValueError(
-            f"Getting empty results. Please check the 'Name' selector for changes, save the settings, and retry"
-            # Getting empty results. Please check 'Store', 'Brand', 'Price', and 'Date valid' selectors for changes, save the settings, and retry
+        raise Exception(
+            f"Warning: Getting empty results. Please check the 'Name' selector for changes, save the settings, and retry"
         )
 
     return results
@@ -153,40 +163,16 @@ def search_page(
 def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progress):
     data = []
     for item in shopping_list:
-        # print()
-        # print("  ", f"Searching for '{item}'")
-        # print()
-
         page = 0
         while True:
-            # print("   ", f"Page {page + 1}")
             set_progress(("Scraping", ": ", f"'{item}' - page {page + 1}", 60))
 
             try:
                 page_results = search_page(driver, url, item, page, zip_, store_data)
 
-                empty_results = 0
-                for result in page_results:
-                    if (
-                        result["Name"] == ""
-                        or result["Price"] == ""
-                        or result["Store"] == ""
-                    ):
-                        empty_results += 1
-                if empty_results > moe:
-                    raise ValueError(
-                        f"Getting empty results. Please check HTML selectors for changes and save the settings"
-                    )
-
                 data.extend(page_results)
-            except ValueError as e:
-                raise
-                # print("    ", e)
-
-                # page -= 1
             except AssertionError:
-                # print()
-                # print("    ", "Reached the last page")
+                # Reached the last page
                 break
             except Exception:
                 raise
@@ -196,18 +182,37 @@ def launch_scraper(driver, url, moe, shopping_list, zip_, store_data, set_progre
     return data
 
 
-def generate_output(data, lp, item_blacklist) -> str:
+def generate_output(data: list, lp: str, item_blacklist: list) -> str:
     warnings.simplefilter(action="ignore", category=FutureWarning)
+
+    df_len = len(data)
 
     df = pd.DataFrame(data)
 
-    # Removing empty rows because of possible scraping errors
-    # df = df[(df["Name"] != "") & (df["Store"] != "") & (df["Price"] != "")]
+    # Checks empty columns and warns about selector issues
+    # ---------------------------
+    empty_columns = []
+    for column in df.columns:
+        if (df[column].values == "").sum() == df_len:
+            empty_columns.append(column)
+    if len(empty_columns) > 0:
+        empty_columns_str = ", ".join([f"'{x}'" for x in empty_columns])
+        raise Exception(
+            f"Warning: {empty_columns_str} column(s) empty. Please check HTML tags for changes, save the settings, and retry"
+        )
 
+    # Blacklist
+    # ---------------------------
     df = df[~df["Name"].isin(item_blacklist)]
 
     # Handles Price and Units
-    df[["Price", "Unit"]] = df["Price"].str.split("/", expand=True)
+    # ---------------------------
+    try:
+        df[["Price", "Unit"]] = df["Price"].str.split("/", expand=True)
+    except:
+        raise Exception(
+            f"Warning: Issue with the 'Price'/'Unit' selector. Please check HTML tags for changes, save the settings, and retry"
+        )
 
     def str_to_float(x: str) -> float:
         try:
@@ -215,12 +220,18 @@ def generate_output(data, lp, item_blacklist) -> str:
         except ValueError:
             return 999.9  # returns 999.9 if cannot process the price
 
-    df["Price"] = df["Price"].apply(lambda x: str_to_float(x))
-    df.sort_values(
-        ["Store", "Item", "Price"], ascending=True, inplace=True
-    )  # sorting the Price from lowest to highest
+    try:
+        df["Price"] = df["Price"].apply(lambda x: str_to_float(x))
+        df.sort_values(
+            ["Store", "Item", "Price"], ascending=True, inplace=True
+        )  # sorting the Price from lowest to highest
+    except:
+        raise Exception(
+            f"Warning: Issue with the fallback 'Price' selector. Please check HTML tags for changes, save the settings, and retry"
+        )
 
     # Reordering columns
+    # ---------------------------
     try:
         df = df[
             ["Store", "Item", "Name", "Brand", "Price", "Unit", "Date valid", "Note"]
@@ -229,18 +240,24 @@ def generate_output(data, lp, item_blacklist) -> str:
         df = df[["Store", "Item", "Name", "Brand", "Price", "Unit", "Date valid"]]
 
     # Lowest price indicator
+    # ---------------------------
     df["LP"] = df.groupby([lp])["Price"].transform("min")
     df["Lowest price across stores"] = df.apply(
         lambda x: f"✅ {x[lp]}" if x["LP"] == x["Price"] else "", axis=1
     )
     df.drop(["LP"], axis=1, inplace=True)  # remove the temporary column
 
-    # Lastly: Removing duplicate entries
+    # Removing duplicate entries
+    # ---------------------------
     df.drop_duplicates(
         subset=["Name", "Brand", "Price", "Unit", "Date valid"],
         keep=False,
         inplace=True,
     )
+
+    # Note selector check
+    # ---------------------------
+    # TODO
 
     # Handles the output
     # ------------------------------------------------------
@@ -252,12 +269,12 @@ def generate_output(data, lp, item_blacklist) -> str:
     blank_line = pd.DataFrame()
     blank_line.to_excel(f"{today}.xlsx", index=False)
 
-    # Loads the file, sets up the Excel Writer
+    # Loads the file, sets up ExcelWriter
     book = load_workbook(f"{today}.xlsx")
     writer = pd.ExcelWriter(f"{today}.xlsx", engine="openpyxl")
     writer.sheets.update({ws.title: ws for ws in book.worksheets})
 
-    # Writes result tables to the file
+    # Applies formatting to grouped by tables and writes to the file
     for e, (_, o) in enumerate(gbo):
         o[["Store", "Item"]] = o[["Store", "Item"]].where(
             o[["Store", "Item"]].apply(lambda x: x != x.shift()), ""

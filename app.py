@@ -5,12 +5,13 @@ import webbrowser
 import logging
 import traceback
 
-from dash import Dash, dcc, html, Input, Output, State, no_update
+from dash import Dash, dcc, html, Input, Output, State, no_update, ctx
 from dash.long_callback import DiskcacheLongCallbackManager
 import diskcache
 import dash_bootstrap_components as dbc
 
-from selenium.common.exceptions import SessionNotCreatedException
+from selenium.common.exceptions import SessionNotCreatedException, TimeoutException
+from soupsieve.util import SelectorSyntaxError
 
 from helpers import (
     check_chrome_exe_path,
@@ -28,13 +29,12 @@ from selenium_init import get_driver
 from marktguru_scraper import set_location, launch_scraper, generate_output
 
 
-# ---------------------------
 def launch_app() -> None:
     webbrowser.open_new("http://127.0.0.1:8050")
 
 
 def App() -> None:
-    external_stylesheets = [dbc.themes.UNITED]
+    external_stylesheets = [dbc.themes.UNITED, dbc.icons.BOOTSTRAP]
 
     app = Dash(
         __name__,
@@ -55,16 +55,24 @@ def App() -> None:
 
     # ---------------------------------------------------------------------------------
     @app.callback(
+        Output("modal-centered", "is_open"),
+        Input("open-centered", "n_clicks"),
+        State("modal-centered", "is_open"),
+    )
+    def toggle_modal(n1, is_open):
+        if n1:
+            return not is_open
+        return is_open
+
+    @app.callback(
         Output("path-input", "value"),
         Output("zip-input", "value"),
         Output("lp-input", "value"),
         Output("moe-input", "value"),
         #
         Output("store-input-1", "value"),
-        # Output("store-input-2", "value"),
         Output("name-input", "value"),
         Output("brand-input-1", "value"),
-        # Output("brand-input-2", "value"),
         Output("dv-input", "value"),
         Output("price-input-1", "value"),
         Output("price-input-2", "value"),
@@ -83,10 +91,8 @@ def App() -> None:
             data.get("moe"),
             #
             data.get("store1"),
-            # data.get("store2"),
             data.get("name"),
             data.get("brand1"),
-            # data.get("brand2"),
             data.get("dv"),
             data.get("price1"),
             data.get("price2"),
@@ -98,6 +104,7 @@ def App() -> None:
         Output("store", "data"),
         #
         Input("save-button", "n_clicks"),
+        Input("reset-button", "n_clicks"),
         #
         State("path-input", "value"),
         State("zip-input", "value"),
@@ -105,10 +112,8 @@ def App() -> None:
         State("moe-input", "value"),
         #
         State("store-input-1", "value"),
-        # State("store-input-2", "value"),
         State("name-input", "value"),
         State("brand-input-1", "value"),
-        # State("brand-input-2", "value"),
         State("dv-input", "value"),
         State("price-input-1", "value"),
         State("price-input-2", "value"),
@@ -118,7 +123,8 @@ def App() -> None:
         prevent_initial_call=True,
     )
     def set_to_store(
-        n_clicks,
+        n1,
+        n2,
         #
         path_,
         zip_,
@@ -126,10 +132,8 @@ def App() -> None:
         moe,
         #
         store1,
-        # store2,
         name,
         brand1,
-        # brand2,
         dv,
         price1,
         price2,
@@ -137,7 +141,9 @@ def App() -> None:
         #
         store_data,
     ):
-        if n_clicks:
+        triggered_id = ctx.triggered_id
+
+        if triggered_id == "save-button":
             store_data = store_data or {}
 
             store_data["path"] = path_
@@ -146,16 +152,19 @@ def App() -> None:
             store_data["moe"] = int(moe)
             #
             store_data["store1"] = store1 or SETTINGS["store1"]
-            # store_data["store2"] = store2 or SETTINGS["store2"]
             store_data["name"] = name or SETTINGS["name"]
             store_data["brand1"] = brand1 or SETTINGS["brand1"]
-            # store_data["brand2"] = brand2 or SETTINGS["brand2"]
             store_data["dv"] = dv or SETTINGS["dv"]
             store_data["price1"] = price1 or SETTINGS["price1"]
             store_data["price2"] = price2 or SETTINGS["price2"]
             store_data["price3"] = price3 or SETTINGS["price3"]
 
             return get_alert("Settings saved", "success"), store_data
+
+        elif triggered_id == "reset-button":
+            store_data = SETTINGS
+
+            return get_alert("Settings reset", "success"), store_data
 
     @app.callback(
         Output("hidden-out", "children"),
@@ -274,26 +283,43 @@ def App() -> None:
 
                 driver = get_driver(path_, headless=True)
 
+                # ---------------------------
                 set_progress(("Setting location", "", "", 10))
-                # try:
-                #     set_location(driver, sl[0], zip_)
-                # except Exception as e:
-                #     if driver is not None:
-                #         driver.quit()
+                try:
+                    set_location(driver, sl[0], zip_)
+                except Exception as e:
+                    try:
+                        if driver is not None:
+                            driver.quit()
+                    except UnboundLocalError:
+                        set_progress(("...", "", "", 100, no_update))
 
-                #     return (
-                #         get_alert(
-                #             f"{str(e)}. Please check HTML selectors for Location. Refer to the traceback to find which selector is causing the issue\n\n{traceback.format_exc()}",
-                #             "danger",
-                #         ),
-                #         no_update,
-                #         no_update,
-                #     )
+                        return (
+                            get_alert(
+                                f"Selenium driver issue. Please exit and rerun 'app.py'",
+                                "warning",
+                            ),
+                            no_update,
+                            no_update,
+                        )
 
+                    traceback_text = traceback.format_exc()
+
+                    return (
+                        get_alert(
+                            f"{str(e)}. Please check HTML selectors for Location. Refer to the traceback to find which selector has caused the issue",
+                            "danger",
+                            traceback=True,
+                            traceback_text=traceback_text,
+                        ),
+                        no_update,
+                        no_update,
+                    )
                 set_progress(("Location set", "", "", 20))
 
                 time.sleep(1)
 
+                # ---------------------------
                 set_progress(("Scraping", "", "", 40))
                 data = launch_scraper(
                     driver, url, moe, sl, zip_, store_data, set_progress
@@ -302,12 +328,14 @@ def App() -> None:
 
                 time.sleep(1)
 
+                # ---------------------------
                 set_progress(("Processing data", "", "", 90))
                 file = generate_output(data, lp, ib)
                 set_progress(("Writing Excel file", "", "", 95))
 
                 time.sleep(1)
 
+                # ---------------------------
                 set_progress(("...", "", "", 100))
 
                 return (
@@ -316,7 +344,7 @@ def App() -> None:
                     file,
                 )
             except FileNotFoundError as e:
-                set_progress(("...", "", "", 100))
+                set_progress(("...", "", "", 100, no_update))
 
                 return (
                     get_alert(
@@ -327,7 +355,7 @@ def App() -> None:
                     no_update,
                 )
             except SessionNotCreatedException as e:
-                set_progress(("...", "", "", 100))
+                set_progress(("...", "", "", 100, no_update))
 
                 return (
                     get_alert(
@@ -337,30 +365,76 @@ def App() -> None:
                     no_update,
                     no_update,
                 )
+            except SelectorSyntaxError as e:
+                set_progress(("...", "", "", 100, no_update))
+
+                return (
+                    get_alert(
+                        f"{str(e)}. Bad selector format. Please check HTML selectors for changes, save the settings, and retry",
+                        "warning",
+                    ),
+                    no_update,
+                    no_update,
+                )
+            except TimeoutException as e:
+                set_progress(("...", "", "", 100, no_update))
+
+                return (
+                    get_alert(
+                        "Selenium timed out. Please retry",
+                        "warning",
+                    ),
+                    no_update,
+                    no_update,
+                )
             except Exception as e:
-                set_progress(("...", "", "", 100))
-                traceback_c = traceback.format_exc()
+                set_progress(("...", "", "", 100, no_update))
+
+                traceback_text = traceback.format_exc()
+
+                if str(e).startswith("Warning: "):
+                    return (
+                        get_alert(
+                            f"{str(e)}",
+                            "warning",
+                        ),
+                        no_update,
+                        no_update,
+                    )
+
                 return (
                     get_alert(
                         f"{str(e)}",
                         "danger",
-                        traceback_c,
                         traceback=True,
+                        traceback_text=traceback_text,
                     ),
                     no_update,
                     no_update,
                 )
             finally:
-                if driver is not None:
-                    driver.quit()
+                try:
+                    if driver is not None:
+                        driver.quit()
+                except UnboundLocalError:
+                    set_progress(("...", "", "", 100, no_update))
+
+                    return (
+                        get_alert(
+                            f"Selenium driver issue. Please exit and rerun 'app.py'",
+                            "warning",
+                        ),
+                        no_update,
+                        no_update,
+                    )
 
     @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
-    def render_page_content(pathname):
+    def output_page_content(pathname):
         if pathname == "/":
             return main
 
         return html.Div(
-            [html.A("Go Home", href="/")],
+            [html.A("Return Home", href="/")],
             className="p-3",
         )
 

@@ -15,18 +15,21 @@ SIDEBAR_STYLE = {
     "max-height": "100vh",
 }
 
+
 sidebar = html.Div(
     [
         dcc.Store(id="store", storage_type="local"),
+        # ---------------------------
         html.Div(
             [
                 html.H2(
-                    "MarktGuru Scraper", className="display-6", id="sidebar-header"
+                    "MarktGuru Scraper", className="display-7", id="sidebar-header"
                 ),
                 html.Hr(),
             ],
             id="sidebar-header-container",
         ),
+        # ---------------------------
         html.Div(
             [
                 html.Div(
@@ -114,13 +117,11 @@ sidebar = html.Div(
                                                     id="moe-input",
                                                 ),
                                                 dbc.Tooltip(
-                                                    "The maximum number of empty results to skip in case of errors on a product page",
+                                                    "(Deprecated. Fixed.) The maximum number of empty results to skip in case of errors on a product page",
                                                     target="moe-input",
                                                     placement="right",
                                                 ),
                                             ],
-                                            id="styled-numeric-input",
-                                            className="mb-2",
                                         ),
                                     ],
                                     id="tab-1",
@@ -134,32 +135,27 @@ sidebar = html.Div(
                         #     html.Div(
                         #         [
                         #             dbc.Label("Selectors"),
-                        #             html.Div(
-                        #                 [
-                        #                     dbc.Input(
-                        #                         type="text",
-                        #                         value=SETTINGS["store1"],
-                        #                         placeholder="Store 1",
-                        #                         id="l-input-1",
-                        #                     ),
-                        #                     dbc.Tooltip(
-                        #                         "Selector for Store tag",
-                        #                         target="l-input-1",
-                        #                         placement="top",
-                        #                     ),
-                        #                 ],
-                        #                 id="location-selectors",
-                        #             ),
                         #         ],
                         #         id="tab-2",
                         #     ),
-                        #     className="px-2",
                         #     label="Location",
                         # ),
                         dbc.Tab(
                             html.Div(
                                 [
-                                    dbc.Label("Selectors (after <li> tag)"),
+                                    html.Div(
+                                        [
+                                            dbc.Label(
+                                                "Selectors (after <li> tag)",
+                                            ),
+                                            html.I(
+                                                id="open-centered",
+                                                className="bi bi-info-circle-fill",
+                                                style={"color": "var(--bs-orange)"},
+                                            ),
+                                        ],
+                                        id="label-i",
+                                    ),
                                     html.Div(
                                         [
                                             dbc.Input(
@@ -261,12 +257,19 @@ sidebar = html.Div(
                     "Save",
                     color="primary",
                     n_clicks=0,
-                    className="me-1",
                     id="save-button",
                     disabled=False,
                 ),
+                dbc.Button(
+                    "Reset",
+                    color="primary",
+                    n_clicks=0,
+                    id="reset-button",
+                    disabled=False,
+                    outline=True,
+                ),
             ],
-            className="d-grid gap-2 col-6 mx-auto",
+            id="sr-buttons",
         ),
     ],
     style=SIDEBAR_STYLE,

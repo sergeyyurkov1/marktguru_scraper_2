@@ -8,11 +8,11 @@
     background-color: inherit !important;
 } */
 
-#container {
+/* #container {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
+} */
 
 #progress-container {
   background-color: white;
@@ -20,13 +20,15 @@
   bottom: 0;
   left: 22rem;
   right: 2rem;
+}
+#progress {
   margin-bottom: 2rem;
 }
 
 #tab-1, #tab-2, #tab-3 {
   overflow-y: scroll;
-  height: 25vh;
-  max-height: 25vh;
+  height: 30vh;
+  max-height: 30vh;
   padding-right: 0.5em;
 }
 
@@ -34,4 +36,34 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.25rem; /* 4px */
+}
+
+#sr-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem; /* 4px */
+}
+
+#open-centered {
+  cursor: help;
+}
+
+#image {
+  max-height: 50vh;
+  align-self: center;
+  justify-self: center;
+}
+
+#reset-button {
+  background-color: white;
+}
+
+#modal-body {
+  display: flex;
+  justify-content: center;
+}
+
+#label-i {
+  display: flex;
+  justify-content: space-between;
 }

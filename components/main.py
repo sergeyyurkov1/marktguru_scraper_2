@@ -6,6 +6,8 @@ main = html.Div(
     [
         html.Div(
             [
+                # Notification area
+                # ---------------------------
                 dbc.Row(
                     id="top-row-0",
                 ),
@@ -13,6 +15,7 @@ main = html.Div(
                     id="top-row-1",
                 ),
                 dbc.Row(id="top-row-2"),
+                # ---------------------------
                 dbc.Row(
                     [
                         dbc.Col(
@@ -20,7 +23,8 @@ main = html.Div(
                                 [
                                     dbc.Label("Shopping list", class_name="h5"),
                                     dbc.Textarea(
-                                        style={"height": "16rem"},
+                                        # ---------------------------
+                                        style={"height": "16rem", "resize": "none"},
                                         draggable=False,
                                         placeholder="Comment out the items you don't want to buy today - prepend the '#' symbol to the name",
                                         id="shopping-list",
@@ -33,7 +37,8 @@ main = html.Div(
                                 [
                                     dbc.Label("Blacklist", class_name="h5"),
                                     dbc.Textarea(
-                                        style={"height": "16rem"},
+                                        # ---------------------------
+                                        style={"height": "16rem", "resize": "none"},
                                         draggable=False,
                                         placeholder="Put items you don't want to see in search results here. Temporarily unlist an item by prepending '#' to the name",
                                         id="item-blacklist",
@@ -42,15 +47,16 @@ main = html.Div(
                             )
                         ),
                     ],
+                    # ---------------------------
                     class_name="mb-4",
                 ),
+                # ---------------------------
                 html.Div(
                     [
                         dbc.Button(
                             "Scrape",
                             color="primary",
                             n_clicks=0,
-                            className="me-1",
                             id="scrape-button",
                         ),
                         dbc.Button(
@@ -58,7 +64,6 @@ main = html.Div(
                             color="primary",
                             outline=True,
                             n_clicks=0,
-                            className="me-1",
                             id="stop-button",
                             style={"visibility": "hidden"},
                         ),
@@ -68,7 +73,6 @@ main = html.Div(
                             "Open results",
                             color="success",
                             n_clicks=0,
-                            className="me-1",
                             id="results-button",
                             style={"visibility": "hidden"},
                         ),
@@ -77,6 +81,26 @@ main = html.Div(
                 ),
             ]
         ),
+        # ---------------------------
+        html.Div(
+            [
+                dbc.Modal(
+                    [
+                        dbc.ModalHeader(
+                            dbc.ModalTitle("HTML Selectors"), close_button=True
+                        ),
+                        dbc.ModalBody(
+                            html.Img(id="image", src=r"assets/default-selectors.png"),
+                            id="modal-body",
+                        ),
+                    ],
+                    id="modal-centered",
+                    centered=True,
+                    is_open=False,
+                ),
+            ]
+        ),
+        # ---------------------------
         html.Div(
             [
                 html.Hr(),

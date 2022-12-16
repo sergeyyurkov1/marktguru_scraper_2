@@ -38,11 +38,11 @@ def read_list(input: str) -> list:
     ]  # strips spaces and new lines
 
 
-def get_alert(c, color, traceback_c="", traceback=False):
+def get_alert(text, color, traceback=False, traceback_text=""):
     if traceback:
         alert = dbc.Alert(
             [
-                c,
+                text,
                 html.Hr(),
                 dbc.Button(
                     "See traceback",
@@ -53,23 +53,29 @@ def get_alert(c, color, traceback_c="", traceback=False):
                     n_clicks=0,
                 ),
                 dbc.Collapse(
-                    dbc.Card(dbc.CardBody(traceback_c)),
+                    dbc.Card(dbc.CardBody(traceback_text)),
                     id="collapse",
                     is_open=False,
                 ),
             ],
             color=color,
-            # id="alert",
             is_open=True,
             dismissable=True,
         )
     else:
-        alert = dbc.Alert(
-            c,
-            color=color,
-            # id="alert",
-            is_open=True,
-            duration=10000,
-        )
+        if color in ["danger", "warning"]:
+            alert = dbc.Alert(
+                text,
+                color=color,
+                is_open=True,
+                dismissable=True,
+            )
+        else:
+            alert = dbc.Alert(
+                text,
+                color=color,
+                is_open=True,
+                duration=5_000,
+            )
 
     return alert
