@@ -1,0 +1,8 @@
+venv
+.vscode
+test
+__pycache__
+Chrome
+cache
+*.xlsx
+*chromedriver*

@@ -1,0 +1,147 @@
+/* .popover-arrow {
+    background-color: inherit;
+}
+.popover-arrow::before {
+    background-color: inherit !important;
+}
+.popover-arrow::after {
+    background-color: inherit !important;
+} */
+
+/* #container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+} */
+
+#progress-container {
+  background-color: white;
+  position: fixed;
+  bottom: 0;
+  left: 22rem;
+  right: 2rem;
+}
+
+#progress {
+  margin-bottom: 2rem;
+}
+
+#tab-1,
+#tab-2,
+#tab-3 {
+  overflow-y: scroll;
+  height: 30vh;
+  max-height: 30vh;
+  padding-right: 0.5em;
+}
+
+#html-selectors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  /* 4px */
+}
+
+#sr-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  /* 4px */
+}
+
+#open-centered {
+  cursor: help;
+}
+
+#image {
+  max-height: 50vh;
+  align-self: center;
+  justify-self: center;
+}
+
+#reset-button {
+  background-color: white;
+}
+
+#reset-button:hover {
+  background-color: var(--bs-orange);
+}
+
+#modal-body {
+  display: flex;
+  justify-content: center;
+}
+
+#label-i,
+#label-textarea {
+  display: flex;
+  justify-content: space-between;
+}
+
+input:focus,
+input:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 20rem;
+  padding: 2rem 1rem;
+  background-color: #f8f9fa;
+  max-height: 100vh;
+
+  overflow-y: auto;
+}
+
+html,
+body {
+  max-height: 100vh;
+}
+
+#page-content {
+  margin-left: 20rem;
+  margin-right: 0;
+
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+
+  max-height: calc(100vh - 113px);
+  overflow-y: auto;
+}
+
+@media only screen and (max-width: 683px) {
+  #sidebar {
+    display: none;
+  }
+
+  #page-content {
+    margin-left: 0 !important;
+  }
+
+  #progress-container {
+    left: 1.5rem !important;
+    right: 1.5rem !important;
+  }
+}
+
+@media only screen and (max-width: 576px) {
+  #shopping-list-container {
+    margin-bottom: 1rem !important;
+  }
+}
+
+.controls {
+  flex-direction: column;
+  align-items: center;
+}
+
+.controls-buttons {
+  width: 250px;
+  margin-bottom: 0.5rem;
+}

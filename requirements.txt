@@ -1,0 +1,12 @@
+requests
+selenium
+pandas
+openpyxl
+diskcache
+dash==2.7.1
+dash[diskcache]
+flask
+dash-bootstrap-components
+beautifulsoup4
+html5lib
+fake_useragent
